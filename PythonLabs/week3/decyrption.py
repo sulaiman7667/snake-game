@@ -10,4 +10,5 @@ while (plaintextpos < len(plaintext)):
 	alphabetpos = alphabetpos + 3
 	ciphertext = ciphertext + alphabet[alphabetpos]
 	plaintextpos = plaintextpos + 1
-print(ciphertext)		
+print(ciphertext)
+	
