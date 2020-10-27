@@ -130,8 +130,8 @@ def main():
 				continue
 		t0 = datetime.now()
 		time = datetime.now()
-		textfile = re.sub('[^A-Za-z ]+', '', textfile)	
 		newfile = textfile
+		textfile = re.sub('[^A-Za-z ]+', '', textfile)	
 		errors = 0
 		errorslist = []
 		wordcounter= 0 
