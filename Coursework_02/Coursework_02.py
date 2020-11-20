@@ -24,7 +24,7 @@ def import_images():
 def create_objects():
     for z in range(len(snake_x)):
         c.create_image(snake_x[z], snake_y[z], image = snake_img, tag = "snake_block")
-    c.create_text(50, 10, text= "Score: " + str(score), fill = "#fff")
+    c.create_text(50, 10, text= "Score: " + str(score), fill = "#fff", tag = "score")
     c.create_text(150, 10, text= "highscore: " + str(highscore), fill = "#fff")
     c.create_rectangle(10, 20, 700, 700, outline = "#525d69")
     c.create_image(food_x[0], food_y[0], image = food_img)
@@ -50,19 +50,26 @@ def move_snake():
 
     for tag, x, y in zip(c.find_withtag("snake_block"), snake_x, snake_y):
         c.coords(tag, x, y)
-
-def loop_action():
-    move_snake()
-    check_snake_collision()
-    c.after(65, loop_action)   
+   
     
 def check_snake_collision():
-    if(snake_x[0] == 680 or snake_x[0] == 10):
+    global score
+    if(snake_x[0] == 700 or snake_x[0] == 0):
         quit()
-    if(snake_y[0] == 680 or snake_y[0] == 20):
+    if(snake_y[0] == 700 or snake_y[0] == 0):
         quit()
-    if((snake_x[0] in snake_x[1:]) and (snake_y[0] in snake_y[1:])):
-        quit()
+    temp_list = []
+    for i in range(len(snake_x)):
+        temp_list.append([snake_x[i],snake_y[i]])
+        if(temp_list[0] in temp_list[1:]):
+            quit()
+    if(snake_x[0] == food_x[0] and snake_y[0] == food_y[0]):
+        i = len(snake_x) -1
+        snake_x.append((snake_x[i] - 20))
+        snake_y.append((snake_x[i] - 20))
+        c.create_image(snake_x[-1], snake_y[-1], image = snake_img, tag = "snake_block")
+        score += 1
+        c.itemconfigure("score", text= "Score: " + str(score), fill = "#fff")
 def update_direction(key):
     global direction
     temp_direction = key.keysym
@@ -73,6 +80,10 @@ def update_direction(key):
         direction = temp_direction
     
 
+def loop_action():
+    check_snake_collision()
+    move_snake()
+    c.after(65, loop_action)
 
 def perform_all_functions():
     import_images()
