@@ -25,7 +25,7 @@ def main():
                 return food_y
 
     ############################################################################################################################################
-    global snake_x, snake_y, direction, score
+    global snake_x, snake_y, direction, score, key_, paused
     snake_x = [400, 380, 360]
     snake_y = [400, 400, 400]
     food_x = set_food_posistion_x()
@@ -33,9 +33,8 @@ def main():
     score = 0
     highscore = 0
     direction = "Right"
-    key_=""
-    pause = False
-
+    key_= ""
+    paused = False
     ############################################################################################################################################
 
     def import_images():
@@ -50,9 +49,11 @@ def main():
         # SNAKE_BLOCKS IMAGES:
         for z in range(len(snake_x)):
             c.create_image(snake_x[z], snake_y[z], image = snake_img, tag = "snake_block")
-        # SCORE IMAGES:
-        c.create_text(50, 10, text= "Score: " + str(score), fill = "#fff", tag = "score")
-        c.create_text(150, 10, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
+        #  TEXT:
+        c.create_text(50, 15, text= "Score: " + str(score), fill = "#fff", tag = "score")
+        c.create_text(100, 15, text= "| " , fill = "#fff")
+        c.create_text(150, 15, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
+        c.create_text(1190, 15, text= "Press p to pause game", fill = "#fff")
 
         i = 0
         for m in range(22):
@@ -71,9 +72,16 @@ def main():
     ############################################################################################################################################
 
     def move_snake():
-        global snake_x, snake_y, pause
-        if(key_ == "p" or key_ == "Escape"):
-            pause_game()
+        global snake_x, snake_y, paused, key_
+        if(key_ == "p"):
+            toggle_pause()
+            while (paused == True):
+                if(key_ == "p"):    
+                    toggle_pause()
+                c.update()
+
+        
+
         if(direction == "Right"):
             new_x = snake_x[0] + 20
             new_y = snake_y[0]
@@ -136,17 +144,19 @@ def main():
         opp_directions2 = [["Down", "Up"], ["Right", "Left"]]
         if(temp_direction in directions and [temp_direction, direction] not in opp_directions1 and [temp_direction, direction] not in opp_directions2):
             direction = temp_direction
-        if (temp_direction == "p" or temp_direction == "Escape" or temp_direction == "c" or temp_direction == "q"):
+        if (temp_direction == "p"):
             key_ = temp_direction 
 
+
+
     ############################################################################################################################################
-    def pause_game():
-        for i in range(3):
-            time.sleep(1)
-            if(key_ == "c"):
-                print("c")
-
-
+    def toggle_pause():
+        global paused,key_
+        if(paused == True):
+            paused =False
+        else:
+            paused = True
+        key_ = ""
 
 
 
@@ -184,7 +194,7 @@ window.geometry("1280x720")
 window.configure(bg = "green")
 start_img = PhotoImage(file = "start.png")
 bg_img = PhotoImage(file = "snake_bg.png")
-start = Button(window, text = "Start Game ",height = 4, width = 12, command = main)
+start = Button(window, text = "Start Game ",height = 4, width = 12, bg = 'red', command = main)
 quit = Button(window, text = "Quit Game",height = 4, width = 12, command = quit)
 leaderboard = Button(window, text = "Leaderboard",height = 4, width = 12, command = quit)
 bg = Label(image = bg_img)
