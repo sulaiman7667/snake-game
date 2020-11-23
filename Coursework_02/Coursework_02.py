@@ -2,22 +2,35 @@ from tkinter import *
 from tkinter import simpledialog
 from random import randint
 import time, pickle, os
+import getpass
 def main():
     c = Canvas(bg = "black",height = "720",width = "1280")
-    c.pack()
+    c.pack() 
 
-    def get_user_name():
-        if(score == score):
-            x = simpledialog.askstring(" ", "You set a new highscore! \nEnter your name to be displayed on the leaderboard:")
-        
     def load_data():
-        global highscore
+        global highscore,username, username_list, highscore_list
         if (os.path.exists("highscore.txt")):
             highscore = pickle.load(open("highscore.txt", "rb"))
+            username = pickle.load(open("username.txt", "rb"))
+            username_list = pickle.load(open("username_list.txt", "rb"))
+            highscore_list = pickle.load(open("highscore_list.txt", "rb"))
 
     def save_data():
-        global highscore
+        global highscore, highscore, username_list, highscore_list
         pickle.dump(highscore, open("highscore.txt", "wb"))
+        pickle.dump(username, open("username.txt", "wb"))
+        print(username_list)
+        for i in range(len(username_list)):
+            if(username_list[i] == getpass.getuser() and len(username_list) > 0):
+                username_list.pop(i)
+                highscore_list.pop(i)
+                i-=1
+
+        username_list.append(username)
+        highscore_list.append(highscore)
+        pickle.dump(username_list, open("username_list.txt", "wb"))
+        pickle.dump(highscore_list, open("highscore_list.txt", "wb"))
+
 
     ############################################################################################################################################
 
@@ -38,7 +51,7 @@ def main():
                 return food_y
 
     ############################################################################################################################################
-    global snake_x, snake_y, direction, score, key_, paused, highscore, game_ended, food_x, food_y
+    global snake_x, snake_y, direction, score, key_, paused, highscore, game_ended, food_x, food_y, username, username_list, highscore_list
     snake_x = [400, 380, 360]
     snake_y = [400, 400, 400]
     food_x = set_food_posistion_x()
@@ -49,8 +62,12 @@ def main():
     key_= ""
     paused = False
     game_ended = False
+    username = getpass.getuser()
+    username_list = []
+    highscore_list = []
     load_data()
-    print(highscore)
+    print(username_list)
+    print(highscore_list)
     ############################################################################################################################################
 
     def import_images():
@@ -156,7 +173,6 @@ def main():
         global key_
         key_ = ""
         temp_direction = key.keysym
-        print(temp_direction)
         directions = ["Up", "Right", "Left", "Down"]
         opp_directions1 = [["Up", "Down"], ["Left", "Right"]]
         opp_directions2 = [["Down", "Up"], ["Right", "Left"]]
@@ -176,19 +192,35 @@ def main():
             paused = True
         key_ = ""
 
-
-
-
-
-
     ############################################################################################################################################
 
     def end_game():
         global tkinter
         c.delete("all")
-        c.create_text(400, 400, text= "Game over...\nyou Scored: " + str(score) , fill = "#fff", tag = "score")
-        get_user_name()
+        c.config(bg = "green")
+        c.create_text(640, 65, text= "LEADERBOARD " , fill = "#fff")
+        c.create_text(50, 20, text= "Game over...\nyou Scored: " + str(score) , fill = "#fff")
         save_data()
+        load_data()
+        # DISPLAYING LEADERBOARD AND IN ASCENDING ORDER:
+        username_highscore_list = []
+        for z in range(len(username_list)):
+            username_highscore_list.append([username_list[z], highscore_list[z]])
+        def take_2nd_element(elem):
+            for c in range(len(elem)):
+                return elem[c][1]
+        username_highscore_list.sort(key = take_2nd_element)
+        print(username_highscore_list)
+        m = 50
+        for i in range (len(username_list)): 
+            c.create_text(440, 100, text= "RANK" , fill = "#fff")
+            c.create_text(640, 100, text= "USERNAME" , fill = "#fff")
+            c.create_text(840, 100, text= "SCORE" , fill = "#fff")
+            c.create_text(440, 100 + 50, text= i +1 , fill = "#fff")
+            c.create_text(640, 100 + 50, text= username_list[i] , fill = "#fff")
+            c.create_text(840, 100 + 50, text =str(highscore_list[i]), fill = "#fff")
+            m+=50
+        
 
     ############################################################################################################################################
 
@@ -210,18 +242,21 @@ def main():
 
     perform_all_functions()  
     c.bind_all("<Key>", update_key)
+
+
+
 window = Tk()
 window.title("Snake")
 window.geometry("1280x720")
 window.configure(bg = "green")
+
+# MAIN MENU:
 bg_img = PhotoImage(file = "snake_bg.png")
-start = Button(window, text = "Start Game ",height = 4, width = 12, bg = 'red', command = main)
-quit = Button(window, text = "Quit Game",height = 4, width = 12, command = quit)
-leaderboard = Button(window, text = "Leaderboard",height = 4, width = 12, command = quit)
+start = Button(window, text = "Start Game ",height = 6, width = 18, bg = 'red', command = main)
+quit = Button(window, text = "Quit Game",height = 6, width = 18, command = quit)
 bg = Label(image = bg_img)
-start.place(x = 565, y = 250)
-quit.place(x = 565,y = 450)
-leaderboard.place(x = 565, y =350)
+start.place(x = 450, y = 300)
+quit.place(x = 650,y = 300)
 bg.place(x = 220, y = 20)
 
 
