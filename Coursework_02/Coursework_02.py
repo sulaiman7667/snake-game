@@ -1,14 +1,28 @@
 from tkinter import *
+from tkinter import simpledialog
 from random import randint
-import time
+import time, pickle, os
 def main():
     c = Canvas(bg = "black",height = "720",width = "1280")
     c.pack()
+
+    def get_user_name():
+        if(score == score):
+            x = simpledialog.askstring(" ", "You set a new highscore! \nEnter your name to be displayed on the leaderboard:")
+        
+    def load_data():
+        global highscore
+        if (os.path.exists("highscore.txt")):
+            highscore = pickle.load(open("highscore.txt", "rb"))
+
+    def save_data():
+        global highscore
+        pickle.dump(highscore, open("highscore.txt", "wb"))
+
     ############################################################################################################################################
 
     def set_food_posistion_x():
         while True:
-            global food_x, x
             x = randint(1, 63) * 20
             if(x not in snake_x):
                 food_x = x
@@ -17,7 +31,6 @@ def main():
     ############################################################################################################################################
 
     def set_food_posistion_y():
-        global food_y, y
         while True:
             y = randint(2, 34) * 20
             if(y not in snake_y):
@@ -25,7 +38,7 @@ def main():
                 return food_y
 
     ############################################################################################################################################
-    global snake_x, snake_y, direction, score, key_, paused
+    global snake_x, snake_y, direction, score, key_, paused, highscore, game_ended, food_x, food_y
     snake_x = [400, 380, 360]
     snake_y = [400, 400, 400]
     food_x = set_food_posistion_x()
@@ -35,13 +48,16 @@ def main():
     direction = "Right"
     key_= ""
     paused = False
+    game_ended = False
+    load_data()
+    print(highscore)
     ############################################################################################################################################
 
     def import_images():
         global snake_img, food_img
         snake_img = PhotoImage(file = "snake.png")
         food_img = PhotoImage(file = "food.png") 
-        start_img = PhotoImage(file = "start.png")
+        
 
     ############################################################################################################################################
 
@@ -53,7 +69,7 @@ def main():
         c.create_text(50, 15, text= "Score: " + str(score), fill = "#fff", tag = "score")
         c.create_text(100, 15, text= "| " , fill = "#fff")
         c.create_text(150, 15, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
-        c.create_text(1190, 15, text= "Press p to pause game", fill = "#fff")
+        c.create_text(1150, 15, text= "Press p to pause/unpause game", fill = "#fff")
 
         i = 0
         for m in range(22):
@@ -79,9 +95,6 @@ def main():
                 if(key_ == "p"):    
                     toggle_pause()
                 c.update()
-
-        
-
         if(direction == "Right"):
             new_x = snake_x[0] + 20
             new_y = snake_y[0]
@@ -105,17 +118,21 @@ def main():
     ############################################################################################################################################    
 
     def check_snake_collision():
-        global score
+        global score, highscore, game_ended
         global food_x, food_y
+        game_ended = False
         if(snake_x[0] == 1280 or snake_x[0] == 0):
+            game_ended = True
             end_game()
         if(snake_y[0] == 700 or snake_y[0] <= 20):
+            game_ended = True
             end_game()
         # COLLISION OF SNAKE WITH ITSELF:
         temp_list = []
         for i in range(len(snake_x)):
             temp_list.append([snake_x[i],snake_y[i]])
             if(temp_list[0] in temp_list[1:]):
+                game_ended = True
                 end_game()
         # COLLISION OF SNAKE_HEAD WITH FOOD:
         if(snake_x[0] == food_x and snake_y[0] == food_y):
@@ -129,7 +146,8 @@ def main():
             score += 1
             c.itemconfigure("score", text= "Score: " + str(score), fill = "#fff")
             if (score > highscore):
-                c.itemconfigure("highscore", text= "highScore: " + str(score), fill = "#fff")
+                highscore = score
+                c.itemconfigure("highscore", text= "highScore: " + str(highscore), fill = "#fff")
 
     ############################################################################################################################################
 
@@ -168,12 +186,16 @@ def main():
     def end_game():
         global tkinter
         c.delete("all")
-        c.create_text(400, 400, text= "Game over you Scored: " + str(score), fill = "#fff", tag = "score")
+        c.create_text(400, 400, text= "Game over...\nyou Scored: " + str(score) , fill = "#fff", tag = "score")
+        get_user_name()
+        save_data()
 
     ############################################################################################################################################
 
     def loop_functions():
-        check_snake_collision()
+        global game_ended
+        if(game_ended == False):
+            check_snake_collision()
         move_snake()
         c.after(55, loop_functions)
 
@@ -192,7 +214,6 @@ window = Tk()
 window.title("Snake")
 window.geometry("1280x720")
 window.configure(bg = "green")
-start_img = PhotoImage(file = "start.png")
 bg_img = PhotoImage(file = "snake_bg.png")
 start = Button(window, text = "Start Game ",height = 4, width = 12, bg = 'red', command = main)
 quit = Button(window, text = "Quit Game",height = 4, width = 12, command = quit)
