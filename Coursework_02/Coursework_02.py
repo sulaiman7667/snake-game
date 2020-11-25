@@ -1,12 +1,13 @@
+
 from tkinter import *
 from tkinter import simpledialog
 from random import randint
 import time, pickle, os
 import getpass
 def main():
+    global c
     c = Canvas(bg = "black",height = "720",width = "1280")
-    c.pack() 
-
+    c.pack()
     def load_data():
         global highscore,username, username_list, highscore_list
         if (os.path.exists("highscore.txt")):
@@ -19,13 +20,11 @@ def main():
         global highscore, highscore, username_list, highscore_list
         pickle.dump(highscore, open("highscore.txt", "wb"))
         pickle.dump(username, open("username.txt", "wb"))
-        print(username_list)
         for i in range(len(username_list)):
             if(username_list[i] == getpass.getuser() and len(username_list) > 0):
                 username_list.pop(i)
                 highscore_list.pop(i)
                 i-=1
-
         username_list.append(username)
         highscore_list.append(highscore)
         pickle.dump(username_list, open("username_list.txt", "wb"))
@@ -50,43 +49,47 @@ def main():
                 food_y = y
                 return food_y
 
+    
     ############################################################################################################################################
-    global snake_x, snake_y, direction, score, key_, paused, highscore, game_ended, food_x, food_y, username, username_list, highscore_list
-    snake_x = [400, 380, 360]
-    snake_y = [400, 400, 400]
-    food_x = set_food_posistion_x()
-    food_y = set_food_posistion_y()
-    score = 0
-    highscore = 0
-    direction = "Right"
-    key_= ""
-    paused = False
-    game_ended = False
-    username = getpass.getuser()
-    username_list = []
-    highscore_list = []
-    load_data()
-    print(username_list)
-    print(highscore_list)
+    def game():    
+        global snake_x, snake_y, direction, score, key_, paused, highscore, game_ended, food_x, food_y, username, username_list, highscore_list
+        snake_x = [400, 380, 360]
+        snake_y = [400, 400, 400]
+        food_x = set_food_posistion_x()
+        food_y = set_food_posistion_y()
+        score = 0
+        highscore = 0
+        direction = "Right"
+        key_= ""
+        paused = False
+        game_ended = False
+        username_list = []
+        highscore_list = []
+        load_data()
+        username = getpass.getuser()
+    game()
     ############################################################################################################################################
 
     def import_images():
-        global snake_img, food_img
+        global snake_img, food_img, boss_img
         snake_img = PhotoImage(file = "snake.png")
-        food_img = PhotoImage(file = "food.png") 
+        food_img = PhotoImage(file = "food.png")
+        boss_img = PhotoImage(file = "boss.png") 
         
 
+  
     ############################################################################################################################################
-
+    def del_canvas():
+        c.pack_forget()
     def create_objects():
         # SNAKE_BLOCKS IMAGES:
         for z in range(len(snake_x)):
             c.create_image(snake_x[z], snake_y[z], image = snake_img, tag = "snake_block")
         #  TEXT:
         c.create_text(50, 15, text= "Score: " + str(score), fill = "#fff", tag = "score")
-        c.create_text(100, 15, text= "| " , fill = "#fff")
-        c.create_text(150, 15, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
-        c.create_text(1150, 15, text= "Press p to pause/unpause game", fill = "#fff")
+        c.create_text(100, 15, text= "|" , fill = "#fff")
+        c.create_text(165, 15, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
+        c.create_text(1130, 15, text= "Press p or b to pause/unpause game", fill = "#fff")
 
         i = 0
         for m in range(22):
@@ -101,17 +104,38 @@ def main():
             i+= 60
         # FOOD IMAGES:
         c.create_image(food_x, food_y, image = food_img, tag = "food")
+        
 
     ############################################################################################################################################
 
-    def move_snake():
-        global snake_x, snake_y, paused, key_
+    def move_snake_and_keys():
+        global snake_x, snake_y, paused, key_, score, highscore
         if(key_ == "p"):
             toggle_pause()
             while (paused == True):
                 if(key_ == "p"):    
                     toggle_pause()
                 c.update()
+        if(key_ == "b"):
+            toggle_pause()
+            boss = c.create_image(800, 570, image = boss_img)
+            while (paused == True):
+                if(key_ == "b"):    
+                    toggle_pause()
+                    c.delete(boss)
+                c.update()
+        if(key_ == "c"):
+            c.coords("food", food_x, food_y)
+            i = len(snake_x) -1
+            snake_x.append((snake_x[i] - 20))
+            snake_y.append((snake_x[i] - 20))
+            c.create_image(snake_x[-1], snake_y[-1], image = snake_img, tag = "snake_block")
+            score += 1
+            c.itemconfigure("score", text= "Score: " + str(score), fill = "#fff")
+            key_ = ""
+            if (score > highscore):
+                highscore = score
+                c.itemconfigure("highscore", text= "highScore: " + str(highscore), fill = "#fff")
         if(direction == "Right"):
             new_x = snake_x[0] + 20
             new_y = snake_y[0]
@@ -178,7 +202,7 @@ def main():
         opp_directions2 = [["Down", "Up"], ["Right", "Left"]]
         if(temp_direction in directions and [temp_direction, direction] not in opp_directions1 and [temp_direction, direction] not in opp_directions2):
             direction = temp_direction
-        if (temp_direction == "p"):
+        if (temp_direction == "p" or temp_direction == "b" or temp_direction == "c"):
             key_ = temp_direction 
 
 
@@ -202,34 +226,33 @@ def main():
         c.create_text(50, 20, text= "Game over...\nyou Scored: " + str(score) , fill = "#fff")
         save_data()
         load_data()
-        # DISPLAYING LEADERBOARD AND IN ASCENDING ORDER:
+        # DISPLAYING LEADERBOARD AND IN DESCENDING ORDER:
         username_highscore_list = []
         for z in range(len(username_list)):
             username_highscore_list.append([username_list[z], highscore_list[z]])
-        def take_2nd_element(elem):
-            for c in range(len(elem)):
-                return elem[c][1]
-        username_highscore_list.sort(key = take_2nd_element)
-        print(username_highscore_list)
+        username_highscore_list.sort(reverse = True, key = lambda x: x[1])
         m = 50
         for i in range (len(username_list)): 
             c.create_text(440, 100, text= "RANK" , fill = "#fff")
             c.create_text(640, 100, text= "USERNAME" , fill = "#fff")
             c.create_text(840, 100, text= "SCORE" , fill = "#fff")
-            c.create_text(440, 100 + 50, text= i +1 , fill = "#fff")
-            c.create_text(640, 100 + 50, text= username_list[i] , fill = "#fff")
-            c.create_text(840, 100 + 50, text =str(highscore_list[i]), fill = "#fff")
+            c.create_text(440, 100 + m, text= i +1 , fill = "#fff")
+            c.create_text(640, 100 + m, text= username_highscore_list[i][0] , fill = "#fff")
+            c.create_text(840, 100 + m, text =str(username_highscore_list[i][1]), fill = "#fff")
             m+=50
-        
 
     ############################################################################################################################################
-
+    
+            
     def loop_functions():
-        global game_ended
+        global game_ended, v
         if(game_ended == False):
             check_snake_collision()
-        move_snake()
-        c.after(55, loop_functions)
+            move_snake_and_keys()
+            c.after(55, loop_functions)
+        if(game_ended == True):
+            retry = Button( text = "Retry ",height = 5, width = 20, bg = 'red', command = lambda: [del_canvas(), main()])
+            retry.place(x = 5, y =610)
 
     ############################################################################################################################################
 
@@ -237,29 +260,32 @@ def main():
         import_images()
         create_objects()
         loop_functions()
-
     ############################################################################################################################################
 
     perform_all_functions()  
     c.bind_all("<Key>", update_key)
 
-
-
 window = Tk()
 window.title("Snake")
-window.geometry("1280x720")
 window.configure(bg = "green")
-
+window.geometry("1280x720")
 # MAIN MENU:
+global bg_img, start, quit, bg
 bg_img = PhotoImage(file = "snake_bg.png")
-start = Button(window, text = "Start Game ",height = 6, width = 18, bg = 'red', command = main)
-quit = Button(window, text = "Quit Game",height = 6, width = 18, command = quit)
+start = Button(window, text = "Start Game ",height = 6, width = 18,highlightbackground='yellow', command = main)
+quit = Button(window, text = "Quit Game",height = 6, width = 18,highlightbackground = "red", command = quit)
 bg = Label(image = bg_img)
 start.place(x = 450, y = 300)
 quit.place(x = 650,y = 300)
 bg.place(x = 220, y = 20)
-
-
 window.mainloop()
+
+
+
+
+
+
+
+
 
 
