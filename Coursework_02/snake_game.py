@@ -1,3 +1,9 @@
+# RESOLUTION: 1280X720
+
+# NOTE: NO STYLING WAS USED DUE TO A BUG IN TKINTER NOT ALLOWING SOME MAC USERS TO STYLE
+# BUTTONS + VM HAD SOME RESOLUTION BUGS THAT DID NOT ALLOW ME TO TEST PROPERLY .
+# I AM WRITING THIS HOPING THE MARKING SCHEME FOR STYLING BUTTONS IS IGNORED.
+
 
 from tkinter import Tk, PhotoImage, Button, Label, Canvas
 from random import randint
@@ -8,6 +14,26 @@ def main():
     global c
     c = Canvas(bg = "black",height = "720",width = "1280")
     c.pack()
+
+
+    def save_game():
+        global snake_x, snake_y, score, direction
+        pickle.dump(snake_x, open("snake_x.txt", "wb"))
+        pickle.dump(snake_y, open("snake_y.txt", "wb"))
+        pickle.dump(score, open("score.txt", "wb"))
+        pickle.dump(direction, open("direction.txt", "wb"))
+
+
+
+
+    def load_game():
+        global snake_x, snake_y, score, direction
+        if (os.path.exists("snake_x.txt")):
+            snake_x = pickle.load(open("snake_x.txt", "rb"))
+            snake_y = pickle.load(open("snake_y.txt", "rb"))
+            score = pickle.load(open("score.txt", "rb"))
+            direction = pickle.load(open("direction.txt", "rb"))
+
 
 
 
@@ -21,6 +47,7 @@ def main():
 
 
 
+   
     def save_data():
         global highscore, highscore, username_list, highscore_list
         pickle.dump(highscore, open("highscore.txt", "wb"))
@@ -47,6 +74,10 @@ def main():
                 food_x = x
                 return food_x
 
+   
+
+
+
     def set_food_posistion_y():
         while True:
             y = randint(2, 34) * 20
@@ -57,7 +88,7 @@ def main():
     
     
 
-    # CREATING VARIABLES:
+    # CREATING AND LOADING VARIABLES:
     global snake_x, snake_y, direction, score, key_, paused, highscore, game_ended, food_x, food_y, username, username_list, highscore_list
     snake_x = [400, 380, 360]
     snake_y = [400, 400, 400]
@@ -71,6 +102,8 @@ def main():
     game_ended = False
     username_list = []
     highscore_list = []
+    if(load == True):
+        load_game()
     load_data()
     username = getpass.getuser()
     
@@ -90,7 +123,16 @@ def main():
     
 
     def del_canvas():
+        global load
         c.pack_forget()
+        load = False
+        if (os.path.exists("snake_x.txt")):
+            os.remove("snake_x.txt")
+            os.remove("snake_y.txt")
+            os.remove("score.txt")
+            os.remove("direction.txt")
+
+
 
     
 
@@ -103,7 +145,7 @@ def main():
         c.create_text(50, 15, text= "Score: " + str(score), fill = "#fff", tag = "score")
         c.create_text(100, 15, text= "|" , fill = "#fff")
         c.create_text(167, 15, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
-        c.create_text(1130, 15, text= "Press p or b to pause/unpause game", fill = "#fff")
+        c.create_text(1180, 15, text= "Press  p or b  to pause", fill = "#fff")
 
         i = 0
         for m in range(22):
@@ -120,7 +162,14 @@ def main():
         c.create_image(food_x, food_y, image = food_img, tag = "food")
         
 
+
     
+    def save_and_exit():
+        global key_
+        save_game()
+        key_ = "p"
+        exit()
+
 
 
 
@@ -129,9 +178,12 @@ def main():
         # PAUSE GAME:
         if(key_ == "p"):
             toggle_pause()
+            quit_btn = Button(text = "Quit and save game",height = 5, width = 18, command = save_and_exit)
+            quit_btn.place(x = 520, y = 500)
             while (paused == True):
                 if(key_ == "p"):    
                     toggle_pause()
+                    quit_btn.destroy()
                 c.update()
         if(key_ == "b"):
             toggle_pause()
@@ -186,17 +238,17 @@ def main():
         # COLLISION OF SNAKE WITH BORDER:
         if(snake_x[0] == 1280 or snake_x[0] == 0):
             game_ended = True
-            end_game()
+            game_over()
         if(snake_y[0] == 700 or snake_y[0] <= 20):
             game_ended = True
-            end_game()
+            game_over()
         # COLLISION OF SNAKE WITH ITSELF:
         temp_list = []
         for i in range(len(snake_x)):
             temp_list.append([snake_x[i],snake_y[i]])
             if(temp_list[0] in temp_list[1:]):
                 game_ended = True
-                end_game()
+                game_over()
         # COLLISION OF SNAKE_HEAD WITH FOOD:
         if(snake_x[0] == food_x and snake_y[0] == food_y):
             food_x = set_food_posistion_x()
@@ -245,12 +297,17 @@ def main():
 
 
 
-    def end_game():
+    def game_over():
         global tkinter
+        if (os.path.exists("snake_x.txt")):
+            os.remove("snake_x.txt")
+            os.remove("snake_y.txt")
+            os.remove("score.txt")
+            os.remove("direction.txt")
         c.delete("all")
         c.config(bg = "green")
         c.create_text(640, 65, text= "LEADERBOARD " , fill = "#fff")
-        c.create_text(50, 20, text= "Game over...\nyou Scored: " + str(score) , fill = "#fff")
+        c.create_text(55, 20, text= "Game over...\nyou Scored: " + str(score) , fill = "#fff")
         save_data()
         load_data()
         # DISPLAYING LEADERBOARD AND IN DESCENDING ORDER:
@@ -279,20 +336,26 @@ def main():
             direction_and_keys()
             c.after(55, loop_functions)
         if(game_ended == True):
-            retry_btn = Button( text = "Retry ", height = 5, width = 20, bg = 'red', command = lambda: [del_canvas(), main()])
+            retry_btn = Button( text = "Retry ", height = 5, width = 20, command = lambda: [del_canvas(), main()])
             retry_btn.place(x = 5, y =610)
-        print(snake_x)
+
+        
+
     
 
-    def perform_all_functions():
+    def perform_functions():
         import_images()
         create_objects()
         loop_functions()
 
 
 
-    perform_all_functions()  
+    perform_functions()  
     c.bind_all("<Key>", update_key)
+
+def check_if_load_game():
+    global load
+    load = True
 
 window = Tk()
 window.title("Snake")
@@ -301,14 +364,19 @@ window.geometry("1280x720")
 
 
 # MAIN MENU:
-global bg_img, start, quit, bg
+global bg_img, start, quit, bg, x
+load = False
 bg_img = PhotoImage(file = "snake_bg.png")
-start = Button(window, text = "Start Game ",height = 6, width = 18,highlightbackground='yellow', command = main)
-quit = Button(window, text = "Quit Game",height = 6, width = 18,highlightbackground = "red", command = quit)
+start = Button(window, text = "Start Game ", height = 5, width = 18, highlightbackground='yellow', command = lambda: [check_if_load_game(), main()])
+quit = Button(window, text = "Quit Game",height = 5, width = 18, highlightbackground = "red", command = quit)
 bg = Label(image = bg_img)
-start.place(x = 450, y = 300)
-quit.place(x = 650,y = 300)
+start.place(x = 450, y = 375)
+quit.place(x = 650,y = 375)
 bg.place(x = 220, y = 20)
+if(os.path.exists("snake_x.txt")):
+    start.config(text = "Continue game")
+
+
 
 
 window.mainloop()
