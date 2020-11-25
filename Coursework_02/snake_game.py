@@ -70,7 +70,7 @@ def main():
     def set_food_posistion_x():
         while True:
             x = randint(1, 63) * 20
-            if(x not in snake_x):
+            if(x not in (snake_x, snake_y)):
                 food_x = x
                 return food_x
 
@@ -81,7 +81,7 @@ def main():
     def set_food_posistion_y():
         while True:
             y = randint(2, 34) * 20
-            if(y not in snake_y):
+            if(y not in (snake_x,snake_y)):
                 food_y = y
                 return food_y
 
@@ -242,7 +242,7 @@ def main():
         if(snake_y[0] == 700 or snake_y[0] <= 20):
             game_ended = True
             game_over()
-        # COLLISION OF SNAKE WITH ITSELF:
+        # COLLISION OF SNAKE_HEAD WITH ITSELF:
         temp_list = []
         for i in range(len(snake_x)):
             temp_list.append([snake_x[i],snake_y[i]])
@@ -334,7 +334,7 @@ def main():
         if(game_ended == False):
             check_snake_collision()
             direction_and_keys()
-            c.after(55, loop_functions)
+            c.after(50, loop_functions)
         if(game_ended == True):
             retry_btn = Button( text = "Retry ", height = 5, width = 20, command = lambda: [del_canvas(), main()])
             retry_btn.place(x = 5, y =610)
