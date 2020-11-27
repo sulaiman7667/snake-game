@@ -1,7 +1,8 @@
 # RESOLUTION: 1280X720
+# CHEATCODE: "C"
 
 # NOTE: NO STYLING WAS USED DUE TO A BUG IN TKINTER NOT ALLOWING SOME MAC USERS TO STYLE
-# BUTTONS + VM HAD SOME RESOLUTION BUGS THAT DID NOT ALLOW ME TO TEST PROPERLY .
+# BUTTONS + VM HAD SOME RESOLUTION BUGS THAT DID NOT ALLOW ME TO TEST PROPERLY.
 # I AM WRITING THIS HOPING THE MARKING SCHEME FOR STYLING BUTTONS IS IGNORED.
 
 
@@ -81,7 +82,7 @@ def main():
     def set_food_posistion_y():
         while True:
             y = randint(2, 34) * 20
-            if(y not in (snake_x,snake_y)):
+            if(y not in (snake_x, snake_y)):
                 food_y = y
                 return food_y
 
@@ -145,7 +146,7 @@ def main():
         c.create_text(50, 15, text= "Score: " + str(score), fill = "#fff", tag = "score")
         c.create_text(100, 15, text= "|" , fill = "#fff")
         c.create_text(167, 15, text= "highscore: " + str(highscore), fill = "#fff", tag = "highscore")
-        c.create_text(1180, 15, text= "Press  p or b  to pause", fill = "#fff")
+        c.create_text(1170, 15, text= "Press p/b to pause game.", fill = "#fff")
 
         i = 0
         for m in range(22):
@@ -167,6 +168,7 @@ def main():
     def save_and_exit():
         global key_
         save_game()
+        save_data()
         key_ = "p"
         exit()
 
@@ -179,7 +181,7 @@ def main():
         if(key_ == "p"):
             toggle_pause()
             quit_btn = Button(text = "Quit and save game",height = 5, width = 18, command = save_and_exit)
-            quit_btn.place(x = 520, y = 500)
+            quit_btn.place(x = 525, y = 360)
             while (paused == True):
                 if(key_ == "p"):    
                     toggle_pause()
@@ -274,9 +276,8 @@ def main():
         key_ = ""
         temp_direction = key.keysym
         directions = ["Up", "Right", "Left", "Down"]
-        opp_directions1 = [["Up", "Down"], ["Left", "Right"]]
-        opp_directions2 = [["Down", "Up"], ["Right", "Left"]]
-        if(temp_direction in directions and [temp_direction, direction] not in opp_directions1 and [temp_direction, direction] not in opp_directions2):
+        opp_directions = [["Up", "Down"], ["Left", "Right"], ["Down", "Up"], ["Right", "Left"]]
+        if(temp_direction in directions and [temp_direction, direction] not in opp_directions):
             direction = temp_direction
         if (temp_direction == "p" or temp_direction == "b" or temp_direction == "c"):
             key_ = temp_direction 
@@ -380,7 +381,6 @@ if(os.path.exists("snake_x.txt")):
 
 
 window.mainloop()
-
 
 
 
